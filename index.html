@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="theme-color" content="#FAFAF7" id="theme-meta" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<title id="page-title">القائمة الرقمية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<script src="data.js"></script>
+<script>
+// ── Bridge: merge admin changes into STORE ──────
+(function() {
+  try {
+    const saved = localStorage.getItem('dg-admin');
+    if (saved) {
+      const s = JSON.parse(saved);
+      Object.assign(STORE, {
+        name: s.name || STORE.name,
+        description: s.description || STORE.description,
+        logo: s.logo || STORE.logo,
+        phone: s.phone || STORE.phone,
+        whatsapp: s.whatsapp || STORE.whatsapp,
+        address: s.address || STORE.address,
+        instagram: s.instagram || STORE.instagram,
+        facebook: s.facebook || STORE.facebook,
+        accentColor: s.accentColor || STORE.accentColor,
+        heroGradient: s.heroGradient || STORE.heroGradient,
+        promo: s.promo || STORE.promo,
+        categories: s.categories?.length ? s.categories : STORE.categories,
+        products: s.products?.length ? s.products : STORE.products,
+      });
+    }
+  } catch(e) {}
+})();
+</script>
+
+<style>
+/* ═══════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════ */
+:root {
+  --bg:          #FAFAF7;
+  --bg2:         #F2F1EC;
+  --bg3:         #E8E6DE;
+  --ink:         #111111;
+  --ink2:        #444444;
+  --ink3:        #777777;
+  --ink4:        #AAAAAA;
+  --card:        #FFFFFF;
+  --border:      #EAEAE5;
+  --accent:      #FF5C35;
+  --accent-dim:  #FF5C3518;
+  --green:       #22C55E;
+  --gold:        #F59E0B;
+  --shadow-s:    0 2px 10px rgba(0,0,0,.06);
+  --shadow-m:    0 6px 24px rgba(0,0,0,.09);
+  --shadow-l:    0 16px 48px rgba(0,0,0,.13);
+  --r:           16px;
+  --r-l:         22px;
+  --r-xl:        28px;
+  --header-h:    56px;
+  --cat-h:       52px;
+}
+[data-theme=dark] {
+  --bg:          #0D0D0D;
+  --bg2:         #161616;
+  --bg3:         #222222;
+  --ink:         #F2F2EE;
+  --ink2:        #CCCCCC;
+  --ink3:        #888888;
+  --ink4:        #555555;
+  --card:        #1A1A1A;
+  --border:      #2A2A2A;
+  --shadow-s:    0 2px 10px rgba(0,0,0,.3);
+  --shadow-m:    0 6px 24px rgba(0,0,0,.4);
+  --shadow-l:    0 16px 48px rgba(0,0,0,.5);
+}
+
+/* ═══════════════════════════════════════════
+   RESET + BASE
+═══════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; height: 100%; }
+body {
+  font-family: 'Cairo', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  transition: background .25s, color .25s;
+}
+img { display: block; max-width: 100%; }
+a  { text-decoration: none; color: inherit; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+input, textarea, select { font-family: inherit; }
+::-webkit-scrollbar { display: none; }
+
+/* ═══════════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════════ */
+@keyframes fadeUp   { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
+@keyframes fadeIn   { from { opacity:0; } to { opacity:1; } }
+@keyframes slideUp  { from { transform:translateY(100%); opacity:0; } to { transform:none; opacity:1; } }
+@keyframes promoPan { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+
+.anim-fadeup  { animation: fadeUp  .4s cubic-bezier(.16,1,.3,1) both; }
+.anim-fadein  { animation: fadeIn  .25s ease both; }
+.anim-slideup { animation: slideUp .45s cubic-bezier(.16,1,.3,1) both; }
+
+/* ═══════════════════════════════════════════
+   PROMO BANNER
+═══════════════════════════════════════════ */
+#promo-bar {
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 9px 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+#promo-bar .track {
+  display: inline-block;
+  animation: promoPan 18s linear infinite;
+}
+#promo-bar .track span { padding: 0 60px; }
+
+/* ═══════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════ */
+#header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  background: rgba(250,250,247,.88);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-bottom: 1px solid var(--border);
+  transition: background .25s;
+}
+[data-theme=dark] #header {
+  background: rgba(13,13,13,.88);
+}
+#header-logo {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; font-weight: 900; color: #fff;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+#header-logo img { width: 100%; height: 100%; object-fit: cover; }
+#header-name {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.header-btn {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: var(--bg2);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  color: var(--ink2);
+  transition: background .15s, color .15s;
+}
+.header-btn:active { background: var(--bg3); }
+.header-btn svg { width: 17px; height: 17px; }
+
+/* ═══════════════════════════════════════════
+   SEARCH BAR
+═══════════════════════════════════════════ */
+#search-wrap {
+  padding: 0 16px 12px;
+  background: rgba(250,250,247,.88);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  position: sticky;
+  top: var(--header-h);
+  z-index: 99;
+  display: none;
+}
+[data-theme=dark] #search-wrap { background: rgba(13,13,13,.88); }
+#search-wrap.visible { display: block; }
+#search-input-wrap {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg2);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 0 14px;
+  height: 42px;
+  transition: border-color .15s;
+}
+#search-input-wrap:focus-within { border-color: var(--accent); }
+#search-input-wrap svg { width: 16px; height: 16px; color: var(--ink4); flex-shrink: 0; }
+#search-input {
+  flex: 1; background: none; border: none; outline: none;
+  font-size: 14px; color: var(--ink);
+  font-family: 'Cairo', sans-serif;
+}
+#search-input::placeholder { color: var(--ink4); }
+#search-clear {
+  color: var(--ink4); display: none; padding: 4px;
+  border-radius: 6px;
+}
+#search-clear:active { background: var(--bg3); }
+
+/* ═══════════════════════════════════════════
+   CATEGORY BAR
+═══════════════════════════════════════════ */
+#cat-bar {
+  position: sticky;
+  top: var(--header-h);
+  z-index: 98;
+  display: flex; gap: 8px;
+  padding: 10px 16px;
+  overflow-x: auto;
+  background: rgba(250,250,247,.88);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-bottom: 1px solid var(--border);
+  transition: top .2s;
+}
+[data-theme=dark] #cat-bar { background: rgba(13,13,13,.88); }
+.cat-btn {
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 6px;
+  padding: 0 16px;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--bg2);
+  color: var(--ink3);
+  transition: background .15s, color .15s, transform .1s;
+}
+.cat-btn span.icon { font-size: 15px; }
+.cat-btn:active { transform: scale(.95); }
+.cat-btn.active {
+  background: var(--ink);
+  color: var(--bg);
+}
+.cat-btn.active.fire { background: var(--accent); color: #fff; }
+
+/* ═══════════════════════════════════════════
+   HERO SECTION
+═══════════════════════════════════════════ */
+#hero {
+  margin: 14px 16px 6px;
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  position: relative;
+  aspect-ratio: 16/7;
+}
+#hero-bg {
+  position: absolute; inset: 0;
+  background-size: cover; background-position: center;
+}
+#hero-overlay {
+  position: absolute; inset: 0;
+}
+#hero-content {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 20px 20px 18px;
+}
+#hero-tag {
+  font-size: 10px; font-weight: 700;
+  color: rgba(255,255,255,.65);
+  letter-spacing: .12em; text-transform: uppercase;
+  margin-bottom: 4px;
+}
+#hero-title {
+  font-size: 22px; font-weight: 900;
+  color: #fff;
+  line-height: 1.15;
+  letter-spacing: -.02em;
+}
+#hero-sub {
+  font-size: 12.5px; color: rgba(255,255,255,.75);
+  margin-top: 6px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.5;
+}
+#hero-info {
+  display: flex; align-items: center; gap: 14px;
+  margin-top: 12px;
+}
+#hero-info a, #hero-info span {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11.5px; color: rgba(255,255,255,.75);
+  font-weight: 600;
+}
+#hero-info svg { width: 13px; height: 13px; }
+
+/* ═══════════════════════════════════════════
+   SECTION HEADINGS
+═══════════════════════════════════════════ */
+.section-head {
+  display: flex; align-items: center; gap: 8px;
+  padding: 20px 16px 10px;
+}
+.section-icon {
+  width: 32px; height: 32px;
+  border-radius: 9px;
+  background: var(--bg2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+.section-title {
+  font-size: 16px; font-weight: 800;
+  color: var(--ink); letter-spacing: -.01em;
+}
+.section-count {
+  font-size: 11px; font-weight: 600;
+  color: var(--ink4);
+  background: var(--bg2);
+  padding: 2px 8px;
+  border-radius: 20px;
+  margin-right: auto;
+}
+
+/* ═══════════════════════════════════════════
+   PRODUCT GRID
+═══════════════════════════════════════════ */
+.product-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 0 16px;
+}
+
+/* ═══════════════════════════════════════════
+   PRODUCT CARD
+═══════════════════════════════════════════ */
+.p-card {
+  background: var(--card);
+  border-radius: var(--r);
+  overflow: hidden;
+  box-shadow: var(--shadow-s);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: transform .15s, box-shadow .15s;
+  display: block;
+  text-align: right;
+  width: 100%;
+}
+.p-card:active { transform: scale(.96); box-shadow: none; }
+
+.p-card-img {
+  position: relative;
+  aspect-ratio: 4/3;
+  overflow: hidden;
+  background: var(--bg2);
+}
+.p-card-img img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform .3s ease;
+}
+.p-card:active .p-card-img img { transform: scale(1.04); }
+.p-card-img .emoji-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 40px;
+}
+.p-card-img .unavail-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,.45);
+  display: flex; align-items: center; justify-content: center;
+}
+.p-card-img .unavail-label {
+  background: rgba(0,0,0,.65);
+  color: #fff; font-size: 10px; font-weight: 700;
+  padding: 4px 12px; border-radius: 20px;
+}
+.p-card-badge {
+  position: absolute; top: 8px; right: 8px;
+}
+
+.p-card-body { padding: 10px 10px 12px; }
+.p-card-name {
+  font-size: 13px; font-weight: 700;
+  color: var(--ink);
+  display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
+  margin-bottom: 3px;
+}
+.p-card-desc {
+  font-size: 11px; color: var(--ink3);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  line-height: 1.45;
+  margin-bottom: 6px;
+}
+.p-card-price {
+  display: flex; align-items: baseline; gap: 5px; flex-wrap: wrap;
+}
+.price-main {
+  font-size: 15px; font-weight: 800;
+  color: var(--accent);
+  letter-spacing: -.01em;
+}
+.price-unit { font-size: 10px; font-weight: 500; opacity: .7; }
+.price-old {
+  font-size: 11px; color: var(--ink4);
+  text-decoration: line-through;
+}
+.price-save {
+  font-size: 10px; font-weight: 700;
+  color: var(--green);
+  background: #22C55E18;
+  padding: 1px 6px; border-radius: 10px;
+}
+
+/* ═══════════════════════════════════════════
+   BADGES
+═══════════════════════════════════════════ */
+.badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 9.5px; font-weight: 800;
+  padding: 3px 8px; border-radius: 20px;
+  letter-spacing: .02em;
+}
+.badge-popular { background: #F97316; color: #fff; }
+.badge-new     { background: #22C55E; color: #fff; }
+.badge-offer   { background: var(--accent); color: #fff; }
+
+/* ═══════════════════════════════════════════
+   LIST VIEW (search results)
+═══════════════════════════════════════════ */
+.product-list { padding: 0 16px; display: flex; flex-direction: column; gap: 8px; }
+.p-list-card {
+  background: var(--card);
+  border-radius: var(--r);
+  overflow: hidden;
+  box-shadow: var(--shadow-s);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  display: flex; align-items: center; gap: 0;
+  transition: transform .15s;
+}
+.p-list-card:active { transform: scale(.97); }
+.p-list-img {
+  width: 88px; height: 88px; flex-shrink: 0;
+  overflow: hidden; background: var(--bg2);
+  position: relative;
+}
+.p-list-img img { width: 100%; height: 100%; object-fit: cover; }
+.p-list-img .emoji-placeholder {
+  width: 100%; height: 100%; display: flex;
+  align-items: center; justify-content: center; font-size: 28px;
+}
+.p-list-body { flex: 1; padding: 10px 12px; min-width: 0; }
+.p-list-top  { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; }
+.p-list-name {
+  font-size: 13.5px; font-weight: 700; color: var(--ink);
+  display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
+}
+.p-list-desc {
+  font-size: 11.5px; color: var(--ink3);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  margin: 3px 0 6px; line-height: 1.45;
+}
+
+/* ═══════════════════════════════════════════
+   EMPTY STATE
+═══════════════════════════════════════════ */
+#empty-state {
+  display: none;
+  flex-direction: column; align-items: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+#empty-state.visible { display: flex; }
+#empty-state .emoji { font-size: 48px; margin-bottom: 12px; }
+#empty-state .title { font-size: 15px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+#empty-state .sub   { font-size: 13px; color: var(--ink3); }
+
+/* ═══════════════════════════════════════════
+   PRODUCT SHEET (Bottom modal)
+═══════════════════════════════════════════ */
+#sheet-backdrop {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,.55);
+  display: none; align-items: flex-end;
+}
+#sheet-backdrop.open { display: flex; animation: fadeIn .2s ease; }
+#sheet {
+  width: 100%;
+  max-height: 92dvh;
+  overflow-y: auto;
+  background: var(--bg);
+  border-radius: 26px 26px 0 0;
+  animation: slideUp .42s cubic-bezier(.16,1,.3,1);
+}
+#sheet-img {
+  position: relative;
+  width: 100%; aspect-ratio: 16/9;
+  overflow: hidden;
+  background: var(--bg2);
+}
+#sheet-img img { width: 100%; height: 100%; object-fit: cover; }
+#sheet-img .emoji-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 72px;
+}
+#sheet-img-gradient {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,.65) 0%, transparent 55%);
+}
+#sheet-close {
+  position: absolute; top: 14px; left: 14px;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255,255,255,.2);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+}
+#sheet-close svg { width: 18px; height: 18px; }
+#sheet-badge-wrap { position: absolute; bottom: 12px; right: 14px; }
+#sheet-body { padding: 20px 20px 40px; }
+#sheet-name {
+  font-size: 20px; font-weight: 900; color: var(--ink);
+  letter-spacing: -.02em; line-height: 1.2;
+  margin-bottom: 8px;
+}
+#sheet-desc {
+  font-size: 13.5px; color: var(--ink3);
+  line-height: 1.6; margin-bottom: 18px;
+}
+.sheet-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 0;
+  border-top: 1px solid var(--border);
+}
+.sheet-row-label { font-size: 13px; color: var(--ink3); font-weight: 500; }
+#sheet-price-wrap { display: flex; align-items: baseline; gap: 8px; }
+#sheet-price-main { font-size: 26px; font-weight: 900; color: var(--accent); letter-spacing: -.02em; }
+#sheet-price-cur  { font-size: 13px; color: var(--ink3); }
+#sheet-price-old  { font-size: 13px; color: var(--ink4); text-decoration: line-through; }
+#sheet-status {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 700;
+  padding: 6px 14px; border-radius: 20px;
+}
+#sheet-status.avail { background: #22C55E18; color: var(--green); }
+#sheet-status.unavail { background: #EF444418; color: #EF4444; }
+#sheet-status svg { width: 14px; height: 14px; }
+#sheet-wa-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; margin-top: 18px;
+  height: 54px; border-radius: 16px;
+  background: #25D366;
+  color: #fff; font-size: 15px; font-weight: 800;
+  letter-spacing: .01em;
+  box-shadow: 0 8px 24px rgba(37,211,102,.35);
+  transition: opacity .15s, transform .1s;
+}
+#sheet-wa-btn:active { opacity: .85; transform: scale(.98); }
+#sheet-wa-btn svg { width: 22px; height: 22px; }
+
+/* ═══════════════════════════════════════════
+   WHATSAPP FAB
+═══════════════════════════════════════════ */
+#wa-fab {
+  position: fixed;
+  bottom: 24px; left: 16px;
+  z-index: 150;
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 18px;
+  border-radius: 50px;
+  background: #25D366;
+  color: #fff;
+  font-size: 13px; font-weight: 800;
+  box-shadow: 0 8px 28px rgba(37,211,102,.4);
+  transition: transform .15s, box-shadow .15s;
+}
+#wa-fab:active { transform: scale(.95); box-shadow: none; }
+#wa-fab svg { width: 20px; height: 20px; }
+
+/* ═══════════════════════════════════════════
+   SEARCH RESULTS HEADER
+═══════════════════════════════════════════ */
+#search-results-info {
+  padding: 14px 16px 8px;
+  font-size: 13px; color: var(--ink3);
+  display: none;
+}
+#search-results-info strong { color: var(--ink); }
+
+/* ═══════════════════════════════════════════
+   BOTTOM PADDING
+═══════════════════════════════════════════ */
+#bottom-pad { height: 100px; }
+
+/* ═══════════════════════════════════════════
+   UTILITY
+═══════════════════════════════════════════ */
+.hidden { display: none !important; }
+</style>
+</head>
+
+<body>
+
+<!-- ── PROMO BANNER ──────────────────────────────── -->
+<div id="promo-bar" class="hidden">
+  <div class="track">
+    <span id="promo-text-1"></span>
+    <span id="promo-text-2"></span>
+  </div>
+</div>
+
+<!-- ── HEADER ────────────────────────────────────── -->
+<header id="header">
+  <div id="header-logo"></div>
+  <div id="header-name"></div>
+  <button class="header-btn" id="btn-search" aria-label="بحث">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+  </button>
+  <button class="header-btn" id="btn-theme" aria-label="تغيير المظهر">
+    <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>
+    <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" class="hidden">
+      <circle cx="12" cy="12" r="5"/>
+      <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+    </svg>
+  </button>
+</header>
+
+<!-- ── SEARCH BAR ─────────────────────────────────── -->
+<div id="search-wrap">
+  <div id="search-input-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <input id="search-input" type="search" placeholder="ابحث في القائمة…" autocomplete="off" />
+    <button id="search-clear" aria-label="مسح البحث">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:14px;height:14px">
+        <path d="M18 6 6 18M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<!-- ── CATEGORY BAR ───────────────────────────────── -->
+<nav id="cat-bar"></nav>
+
+<!-- ── MAIN CONTENT ───────────────────────────────── -->
+<main id="main">
+
+  <!-- Hero -->
+  <section id="hero">
+    <div id="hero-bg"></div>
+    <div id="hero-overlay"></div>
+    <div id="hero-content">
+      <div id="hero-tag">قائمة طعامنا</div>
+      <div id="hero-title"></div>
+      <div id="hero-sub" class="hidden"></div>
+      <div id="hero-info">
+        <a id="hero-phone" class="hidden" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6.18 6.18l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+          </svg>
+          <span id="hero-phone-txt"></span>
+        </a>
+        <span id="hero-addr" class="hidden">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+          </svg>
+          <span id="hero-addr-txt"></span>
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Search results info -->
+  <div id="search-results-info"></div>
+
+  <!-- Product sections (injected by JS) -->
+  <div id="product-sections"></div>
+
+  <!-- Empty state -->
+  <div id="empty-state">
+    <div class="emoji">🔍</div>
+    <div class="title">لا توجد نتائج</div>
+    <div class="sub">جرب كلمة بحث أخرى</div>
+  </div>
+
+  <div id="bottom-pad"></div>
+</main>
+
+<!-- ── WHATSAPP FAB ────────────────────────────────── -->
+<a id="wa-fab" href="#" target="_blank" rel="noreferrer" class="hidden">
+  <svg viewBox="0 0 24 24" fill="currentColor">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
+  </svg>
+  تواصل معنا
+</a>
+
+<!-- ── PRODUCT SHEET ───────────────────────────────── -->
+<div id="sheet-backdrop">
+  <div id="sheet">
+    <div id="sheet-img">
+      <div id="sheet-img-inner"></div>
+      <div id="sheet-img-gradient"></div>
+      <button id="sheet-close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <path d="M18 6 6 18M6 6l12 12"/>
+        </svg>
+      </button>
+      <div id="sheet-badge-wrap"></div>
+    </div>
+    <div id="sheet-body">
+      <div id="sheet-name"></div>
+      <div id="sheet-desc"></div>
+      <div class="sheet-row">
+        <span class="sheet-row-label">السعر</span>
+        <div id="sheet-price-wrap">
+          <span id="sheet-price-main"></span>
+          <span id="sheet-price-cur">دج</span>
+          <span id="sheet-price-old" class="hidden"></span>
+        </div>
+      </div>
+      <div class="sheet-row">
+        <span class="sheet-row-label">الحالة</span>
+        <div id="sheet-status"></div>
+      </div>
+      <a id="sheet-wa-btn" href="#" target="_blank" rel="noreferrer" class="hidden">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
+        </svg>
+        اطلب عبر واتساب
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════ -->
+<script>
+(function () {
+  'use strict';
+
+  // ── Apply accent color from data ──────────────
+  document.documentElement.style.setProperty('--accent', STORE.accentColor || '#FF5C35');
+
+  // ── Theme ─────────────────────────────────────
+  const savedTheme = localStorage.getItem('dg-theme') || 'light';
+  let currentTheme = savedTheme;
+  applyTheme(currentTheme);
+
+  function applyTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    document.getElementById('theme-meta').content = t === 'dark' ? '#0D0D0D' : '#FAFAF7';
+    document.getElementById('icon-moon').classList.toggle('hidden', t === 'dark');
+    document.getElementById('icon-sun').classList.toggle('hidden', t === 'light');
+  }
+
+  document.getElementById('btn-theme').addEventListener('click', () => {
+    currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+    applyTheme(currentTheme);
+    localStorage.setItem('dg-theme', currentTheme);
+  });
+
+  // ── Promo banner ──────────────────────────────
+  if (STORE.promo?.active && STORE.promo.text) {
+    const bar = document.getElementById('promo-bar');
+    const t   = STORE.promo.text;
+    document.getElementById('promo-text-1').textContent = t;
+    document.getElementById('promo-text-2').textContent = t;
+    bar.classList.remove('hidden');
+  }
+
+  // ── Header ────────────────────────────────────
+  const logoEl = document.getElementById('header-logo');
+  logoEl.style.background = STORE.accentColor || '#FF5C35';
+  if (STORE.logo) {
+    logoEl.innerHTML = `<img src="${STORE.logo}" alt="${STORE.name}" />`;
+  } else {
+    logoEl.textContent = STORE.name.charAt(0);
+  }
+  document.getElementById('header-name').textContent = STORE.name;
+  document.getElementById('page-title').textContent = STORE.name + ' — القائمة';
+
+  // ── Hero ──────────────────────────────────────
+  const heroBg  = document.getElementById('hero-bg');
+  const heroOvl = document.getElementById('hero-overlay');
+  const g1 = STORE.heroGradient?.[0] || '#1a1a2e';
+  const g2 = STORE.heroGradient?.[1] || '#16213e';
+
+  if (STORE.cover) {
+    heroBg.style.backgroundImage = `url(${STORE.cover})`;
+    heroOvl.style.background = 'linear-gradient(to top, rgba(0,0,0,.75) 0%, rgba(0,0,0,.15) 100%)';
+  } else {
+    heroBg.style.background = `linear-gradient(135deg, ${g1} 0%, ${g2} 100%)`;
+    // decorative circles
+    heroBg.innerHTML = `
+      <div style="position:absolute;top:-30px;left:-20px;width:140px;height:140px;border-radius:50%;background:${STORE.accentColor};opacity:.15"></div>
+      <div style="position:absolute;bottom:-20px;right:20px;width:90px;height:90px;border-radius:50%;background:${STORE.accentColor};opacity:.1"></div>
+    `;
+    heroOvl.style.background = 'linear-gradient(to top, rgba(0,0,0,.55) 0%, transparent 65%)';
+  }
+
+  document.getElementById('hero-title').textContent = STORE.name;
+
+  if (STORE.description) {
+    const sub = document.getElementById('hero-sub');
+    sub.textContent = STORE.description;
+    sub.classList.remove('hidden');
+  }
+
+  if (STORE.phone) {
+    const ph = document.getElementById('hero-phone');
+    ph.href = `tel:${STORE.phone}`;
+    document.getElementById('hero-phone-txt').textContent = STORE.phone;
+    ph.classList.remove('hidden');
+  }
+
+  if (STORE.address) {
+    const addr = document.getElementById('hero-addr');
+    document.getElementById('hero-addr-txt').textContent = STORE.address;
+    addr.classList.remove('hidden');
+  }
+
+  // ── WhatsApp FAB ─────────────────────────────
+  if (STORE.whatsapp) {
+    const fab = document.getElementById('wa-fab');
+    fab.href = `https://wa.me/${STORE.whatsapp}`;
+    fab.classList.remove('hidden');
+  }
+
+  // ── Category bar ─────────────────────────────
+  let activeCat = 'all';
+  const catBar = document.getElementById('cat-bar');
+
+  function buildCatBar() {
+    catBar.innerHTML = '';
+    // All button
+    const all = document.createElement('button');
+    all.className = 'cat-btn active';
+    all.dataset.cat = 'all';
+    all.innerHTML = '<span class="label">الكل</span>';
+    all.addEventListener('click', () => selectCat('all', all));
+    catBar.appendChild(all);
+
+    STORE.categories.forEach(cat => {
+      const btn = document.createElement('button');
+      btn.className = 'cat-btn';
+      btn.dataset.cat = cat.id;
+      btn.innerHTML = `${cat.icon ? `<span class="icon">${cat.icon}</span>` : ''}<span class="label">${cat.name}</span>`;
+      btn.addEventListener('click', () => selectCat(cat.id, btn));
+      catBar.appendChild(btn);
+    });
+  }
+
+  function selectCat(id, btn) {
+    activeCat = id;
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active', 'fire'));
+    btn.classList.add('active');
+    if (id !== 'all') btn.classList.add('fire');
+    btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    // close search
+    closeSearch();
+    renderProducts('');
+    if (id !== 'all') {
+      setTimeout(() => {
+        const sec = document.getElementById('sec-' + id);
+        if (sec) {
+          const top = sec.getBoundingClientRect().top + window.scrollY - 120;
+          window.scrollTo({ top, behavior: 'smooth' });
+        }
+      }, 60);
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  // ── Helpers ───────────────────────────────────
+  function badgeHTML(badge) {
+    if (!badge) return '';
+    const map = {
+      popular: ['🔥', 'الأكثر طلباً', 'badge-popular'],
+      new:     ['✨', 'جديد',          'badge-new'],
+      offer:   ['🏷️', 'عرض',          'badge-offer'],
+    };
+    const b = map[badge];
+    if (!b) return '';
+    return `<span class="badge ${b[2]}">${b[0]} ${b[1]}</span>`;
+  }
+
+  function priceHTML(price, oldPrice) {
+    const save = oldPrice ? Math.round((1 - price / oldPrice) * 100) : 0;
+    return `
+      <div class="p-card-price">
+        <span class="price-main">${price.toLocaleString('ar-DZ')}<span class="price-unit"> دج</span></span>
+        ${oldPrice ? `<span class="price-old">${oldPrice.toLocaleString()}</span>` : ''}
+        ${save > 0 ? `<span class="price-save">-${save}٪</span>` : ''}
+      </div>`;
+  }
+
+  function imgOrEmoji(img, emoji) {
+    if (img) return `<img src="${img}" alt="" loading="lazy" />`;
+    return `<div class="emoji-placeholder">🍽️</div>`;
+  }
+
+  // ── Render Products ───────────────────────────
+  function renderProducts(query) {
+    const q = query.trim().toLowerCase();
+    const sections = document.getElementById('product-sections');
+    const empty    = document.getElementById('empty-state');
+    const info     = document.getElementById('search-results-info');
+    const hero     = document.getElementById('hero');
+
+    // Filter products
+    let filtered = STORE.products.filter(p => {
+      const inCat = (activeCat === 'all') || (p.cat === activeCat);
+      const inQ   = !q || p.name.toLowerCase().includes(q) || (p.desc || '').toLowerCase().includes(q);
+      return inCat && inQ;
+    });
+
+    // Hide hero when searching
+    hero.style.display = q ? 'none' : '';
+
+    sections.innerHTML = '';
+    empty.classList.remove('visible');
+    info.style.display = 'none';
+
+    if (filtered.length === 0) {
+      empty.classList.add('visible');
+      return;
+    }
+
+    if (q) {
+      // ── LIST VIEW for search ────────────────────
+      info.style.display = 'block';
+      info.innerHTML = `<strong>${filtered.length}</strong> نتيجة لـ «${query}»`;
+
+      const list = document.createElement('div');
+      list.className = 'product-list anim-fadein';
+      filtered.forEach(p => {
+        const card = document.createElement('button');
+        card.className = 'p-list-card';
+        card.innerHTML = `
+          <div class="p-list-img">${imgOrEmoji(p.img)}${!p.available ? '<div class="unavail-overlay"><span style="font-size:9px;font-weight:700;color:#fff;background:rgba(0,0,0,.6);padding:3px 10px;border-radius:20px">غير متوفر</span></div>' : ''}</div>
+          <div class="p-list-body">
+            <div class="p-list-top">
+              <div class="p-list-name">${p.name}</div>
+              ${badgeHTML(p.badge)}
+            </div>
+            ${p.desc ? `<div class="p-list-desc">${p.desc}</div>` : ''}
+            ${priceHTML(p.price, p.oldPrice)}
+          </div>`;
+        card.addEventListener('click', () => openSheet(p));
+        list.appendChild(card);
+      });
+      sections.appendChild(list);
+
+    } else {
+      // ── GRID VIEW grouped by category ──────────
+      const catsToShow = (activeCat === 'all')
+        ? STORE.categories
+        : STORE.categories.filter(c => c.id === activeCat);
+
+      catsToShow.forEach(cat => {
+        const items = filtered.filter(p => p.cat === cat.id);
+        if (!items.length) return;
+
+        const sec = document.createElement('section');
+        sec.id = 'sec-' + cat.id;
+        sec.innerHTML = `
+          <div class="section-head">
+            <div class="section-icon">${cat.icon || '📁'}</div>
+            <div class="section-title">${cat.name}</div>
+            <div class="section-count">${items.length}</div>
+          </div>`;
+
+        const grid = document.createElement('div');
+        grid.className = 'product-grid';
+
+        items.forEach((p, i) => {
+          const card = document.createElement('button');
+          card.className = `p-card anim-fadeup`;
+          card.style.animationDelay = (i * 0.04) + 's';
+          card.innerHTML = `
+            <div class="p-card-img">
+              ${imgOrEmoji(p.img)}
+              ${!p.available ? `<div class="unavail-overlay"><span class="unavail-label">غير متوفر</span></div>` : ''}
+              ${p.badge ? `<div class="p-card-badge">${badgeHTML(p.badge)}</div>` : ''}
+            </div>
+            <div class="p-card-body">
+              <div class="p-card-name">${p.name}</div>
+              ${p.desc ? `<div class="p-card-desc">${p.desc}</div>` : ''}
+              ${priceHTML(p.price, p.oldPrice)}
+            </div>`;
+          card.addEventListener('click', () => openSheet(p));
+          grid.appendChild(card);
+        });
+
+        sec.appendChild(grid);
+        sections.appendChild(sec);
+      });
+    }
+  }
+
+  // ── Product Sheet ─────────────────────────────
+  const backdrop = document.getElementById('sheet-backdrop');
+  const sheet    = document.getElementById('sheet');
+
+  function openSheet(p) {
+    // Image
+    const imgInner = document.getElementById('sheet-img-inner');
+    imgInner.innerHTML = p.img
+      ? `<img src="${p.img}" alt="${p.name}" />`
+      : `<div class="emoji-placeholder">🍽️</div>`;
+
+    // Badge
+    document.getElementById('sheet-badge-wrap').innerHTML = badgeHTML(p.badge);
+
+    // Body
+    document.getElementById('sheet-name').textContent = p.name;
+    document.getElementById('sheet-desc').textContent = p.desc || '';
+
+    // Price
+    document.getElementById('sheet-price-main').textContent = p.price.toLocaleString('ar-DZ');
+    const oldEl = document.getElementById('sheet-price-old');
+    if (p.oldPrice) {
+      oldEl.textContent = p.oldPrice.toLocaleString() + ' دج';
+      oldEl.classList.remove('hidden');
+    } else {
+      oldEl.classList.add('hidden');
+    }
+
+    // Status
+    const st = document.getElementById('sheet-status');
+    if (p.available) {
+      st.className = 'avail';
+      st.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:14px;height:14px"><path d="M20 6 9 17l-5-5"/></svg> متوفر`;
+    } else {
+      st.className = 'unavail';
+      st.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:14px;height:14px"><path d="M18 6 6 18M6 6l12 12"/></svg> غير متوفر حالياً`;
+    }
+
+    // WhatsApp button
+    const waBtn = document.getElementById('sheet-wa-btn');
+    if (STORE.whatsapp && p.available) {
+      waBtn.href = `https://wa.me/${STORE.whatsapp}?text=${encodeURIComponent('أريد طلب: ' + p.name)}`;
+      waBtn.classList.remove('hidden');
+    } else {
+      waBtn.classList.add('hidden');
+    }
+
+    backdrop.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeSheet() {
+    backdrop.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('sheet-close').addEventListener('click', closeSheet);
+  backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeSheet(); });
+
+  // ── Search ────────────────────────────────────
+  const searchWrap  = document.getElementById('search-wrap');
+  const searchInput = document.getElementById('search-input');
+  const searchClear = document.getElementById('search-clear');
+  let searchOpen = false;
+
+  document.getElementById('btn-search').addEventListener('click', () => {
+    searchOpen = !searchOpen;
+    searchWrap.classList.toggle('visible', searchOpen);
+    if (searchOpen) {
+      // shift cat bar down
+      document.getElementById('cat-bar').style.top = 'calc(var(--header-h) + 58px)';
+      setTimeout(() => searchInput.focus(), 60);
+    } else {
+      closeSearch();
+    }
+  });
+
+  function closeSearch() {
+    searchOpen = false;
+    searchWrap.classList.remove('visible');
+    searchInput.value = '';
+    searchClear.style.display = 'none';
+    document.getElementById('cat-bar').style.top = '';
+    renderProducts('');
+  }
+
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value;
+    searchClear.style.display = q ? 'block' : 'none';
+    renderProducts(q);
+  });
+
+  searchClear.addEventListener('click', () => {
+    searchInput.value = '';
+    searchClear.style.display = 'none';
+    searchInput.focus();
+    renderProducts('');
+  });
+
+  // ── Init ──────────────────────────────────────
+  buildCatBar();
+  renderProducts('');
+
+})();
+</script>
+</body>
+</html>
